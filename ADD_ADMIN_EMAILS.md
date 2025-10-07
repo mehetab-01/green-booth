@@ -21,7 +21,7 @@ Replace the placeholder with real emails:
 
 ```javascript
 const ADMIN_EMAILS = [
-  'john.smith@gmail.com',      // Main admin
+  'shaaz.meehtab@gmail.com',      // Main admin
   'jane.doe@example.com',      // Co-admin
   'teacher@school.edu',        // Teacher account
   // Add more as needed

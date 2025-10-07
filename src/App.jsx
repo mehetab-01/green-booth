@@ -317,12 +317,45 @@ function App() {
 
   // Flip camera between front and back
   const flipCamera = async () => {
+    if (!isCameraActive) return;
+    
     const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
     setFacingMode(newFacingMode);
+    setIsCameraLoading(true);
     
-    // If camera is active, restart it with new facing mode
-    if (isCameraActive) {
-      await startCamera();
+    try {
+      // Stop current stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      // Start with new facing mode
+      const constraints = {
+        video: {
+          facingMode: newFacingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      if (videoRef.current) {
+        streamRef.current = stream;
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        videoRef.current.playsInline = true;
+        
+        await videoRef.current.play();
+        setIsCameraLoading(false);
+        showMessage(`Switched to ${newFacingMode === 'user' ? 'front' : 'back'} camera`, 'success');
+      }
+    } catch (error) {
+      console.error('Error flipping camera:', error);
+      setIsCameraLoading(false);
+      showMessage('Could not switch camera. This device may only have one camera.', 'error');
     }
   };
 
@@ -714,12 +747,13 @@ function App() {
                 style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
               />
               
-              {/* Flip Camera Button - shown when camera is active */}
+              {/* Flip Camera Button - shown when camera is active on mobile/tablet only */}
               {isCameraActive && (
                 <button
                   onClick={flipCamera}
-                  className="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition duration-200 shadow-lg"
+                  className="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition duration-200 shadow-lg md:hidden"
                   title="Flip Camera"
+                  disabled={isCameraLoading}
                 >
                   <FlipCameraIcon />
                 </button>
