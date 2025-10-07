@@ -177,6 +177,7 @@ function App() {
 
   const startCamera = async () => {
     setIsCameraLoading(true);
+    setIsCameraActive(false);
     
     // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -189,8 +190,11 @@ function App() {
       // First, stop any existing stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
 
+      console.log('Requesting camera access...');
+      
       const constraints = {
         video: {
           width: { ideal: 1280 },
@@ -201,41 +205,82 @@ function App() {
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Camera stream obtained:', stream);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        
-        // Set attributes for better compatibility
-        videoRef.current.setAttribute('playsinline', '');
-        videoRef.current.setAttribute('autoplay', '');
-        videoRef.current.muted = true;
-        
-        // Wait for video to be ready
+      if (!videoRef.current) {
+        console.error('Video element not found');
+        setIsCameraLoading(false);
+        showMessage('Video element not ready. Please try again.', 'error');
+        return;
+      }
+
+      // Store stream reference
+      streamRef.current = stream;
+      
+      // Set video source
+      videoRef.current.srcObject = stream;
+      
+      // Ensure video element is properly configured
+      videoRef.current.muted = true;
+      videoRef.current.playsInline = true;
+      videoRef.current.autoplay = true;
+      
+      console.log('Video element configured, waiting for metadata...');
+      
+      // Create a promise that resolves when video is ready
+      const videoReady = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Video metadata loading timeout'));
+        }, 5000);
+
         videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play().then(() => {
-            setIsCameraActive(true);
-            setIsCameraLoading(false);
-            showMessage('Camera started successfully!', 'success');
-          }).catch(err => {
-            console.error('Error playing video:', err);
-            setIsCameraLoading(false);
-            showMessage('Error starting camera preview. Please try again.', 'error');
-          });
+          console.log('Video metadata loaded');
+          clearTimeout(timeout);
+          resolve();
         };
-        
-        // Fallback: if metadata doesn't load in 3 seconds, try to play anyway
-        setTimeout(() => {
-          if (!isCameraActive && videoRef.current) {
-            videoRef.current.play().catch(err => {
-              console.error('Delayed play error:', err);
-            });
-          }
-        }, 3000);
+
+        // Sometimes metadata event doesn't fire, check if already loaded
+        if (videoRef.current.readyState >= 2) {
+          console.log('Video already ready');
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+
+      try {
+        await videoReady;
+        console.log('Attempting to play video...');
+        await videoRef.current.play();
+        console.log('Video playing successfully');
+        setIsCameraActive(true);
+        setIsCameraLoading(false);
+        showMessage('Camera started successfully!', 'success');
+      } catch (playError) {
+        console.error('Error playing video:', playError);
+        // Try one more time with a small delay
+        await new Promise(resolve => setTimeout(resolve, 100));
+        try {
+          await videoRef.current.play();
+          console.log('Video playing after retry');
+          setIsCameraActive(true);
+          setIsCameraLoading(false);
+          showMessage('Camera started successfully!', 'success');
+        } catch (retryError) {
+          console.error('Retry failed:', retryError);
+          setIsCameraLoading(false);
+          showMessage('Error starting camera preview. Please try again.', 'error');
+        }
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
       setIsCameraLoading(false);
+      
+      // Clean up stream if it was created
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
       let errorMessage = 'Unable to access camera. ';
       
       if (error.name === 'NotAllowedError') {
@@ -248,11 +293,37 @@ function App() {
         errorMessage += 'Camera not supported. Please use HTTPS.';
       } else if (error.name === 'TypeError') {
         errorMessage += 'Camera access requires HTTPS. Make sure you\'re using https://.';
+      } else if (error.name === 'AbortError') {
+        errorMessage += 'Camera access was aborted. Please try again.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage += 'Camera resolution not supported. Trying with default settings...';
+        // Retry with simpler constraints
+        setTimeout(() => startCameraSimple(), 1000);
+        return;
       } else {
-        errorMessage += 'Please check your camera settings and permissions.';
+        errorMessage += `Error: ${error.message || 'Please check your camera settings and permissions.'}`;
       }
       
       showMessage(errorMessage, 'error');
+    }
+  };
+
+  // Simplified camera start with minimal constraints (fallback)
+  const startCameraSimple = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        streamRef.current = stream;
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        videoRef.current.playsInline = true;
+        await videoRef.current.play();
+        setIsCameraActive(true);
+        showMessage('Camera started with basic settings!', 'success');
+      }
+    } catch (err) {
+      console.error('Simple camera start failed:', err);
+      showMessage('Camera failed to start. Please check permissions.', 'error');
     }
   };
 
@@ -275,13 +346,20 @@ function App() {
       setPhotoPreview(photoDataUrl);
       
       // Stop camera stream
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      setIsCameraActive(false);
+      stopCamera();
       showMessage('Photo captured successfully!', 'success');
     }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
   };
 
   const handleFileUpload = (event) => {
@@ -329,11 +407,8 @@ function App() {
   };
 
   const cancelCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsCameraActive(false);
+    stopCamera();
+    showMessage('Camera stopped.', 'success');
   };
 
   // Admin function to download all photos as ZIP
