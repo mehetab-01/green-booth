@@ -1,0 +1,24 @@
+{
+  "name": "green-booth",
+  "version": "1.0.0",
+  "description": "Environmental club photo booth application",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^10.14.1",
+    "jszip": "^3.10.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6",
+    "vite": "^5.0.8"
+  }
+}

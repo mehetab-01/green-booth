@@ -1,0 +1,99 @@
+███████╗██╗  ██╗██████╗  ██████╗ ██████╗ ████████╗    ████████╗ ██████╗     ██╗   ██╗███████╗██████╗  ██████╗███████╗██╗     
+██╔════╝╚██╗██╔╝██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝    ╚══██╔══╝██╔═══██╗    ██║   ██║██╔════╝██╔══██╗██╔════╝██╔════╝██║     
+█████╗   ╚███╔╝ ██████╔╝██║   ██║██████╔╝   ██║          ██║   ██║   ██║    ██║   ██║█████╗  ██████╔╝██║     █████╗  ██║     
+██╔══╝   ██╔██╗ ██╔═══╝ ██║   ██║██╔══██╗   ██║          ██║   ██║   ██║    ╚██╗ ██╔╝██╔══╝  ██╔══██╗██║     ██╔══╝  ██║     
+███████╗██╔╝ ██╗██║     ╚██████╔╝██║  ██║   ██║          ██║   ╚██████╔╝     ╚████╔╝ ███████╗██║  ██║╚██████╗███████╗███████╗
+╚══════╝╚═╝  ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝          ╚═╝    ╚═════╝       ╚═══╝  ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚══════╝
+
+# 🚀 QUICK START GUIDE - Vercel Deployment
+
+## Step 1: Install Dependencies
+```bash
+npm install
+```
+
+## Step 2: Test Locally (Optional)
+```bash
+npm run dev
+```
+Visit: http://localhost:5173
+
+## Step 3: Deploy to Vercel
+
+### A. Using Vercel Website (Easiest)
+1. Go to https://vercel.com
+2. Sign in with GitHub
+3. Click "New Project"
+4. Select your repo
+5. Click "Deploy"
+6. Done! 🎉
+
+### B. Using Command Line
+```bash
+npm install -g vercel
+vercel login
+vercel --prod
+```
+
+## Step 4: Update Firebase
+⚠️ IMPORTANT - Do this after deployment!
+
+1. Go to: https://console.firebase.google.com
+2. Select your project → Authentication → Settings
+3. Add your Vercel URL to "Authorized domains"
+4. Example: `your-app.vercel.app`
+
+## 📸 Using the App
+
+### For Users:
+- Click "Home" to upload photos
+- Sign in with Google
+- Take photo or upload file
+- Submit!
+
+### For Admins:
+- Go to "Gallery"
+- Click "Download All" (blue button)
+- Get ZIP with all photos
+
+## 🔧 Your Configuration
+
+Firebase Project: green-booth
+Already configured in the code ✅
+
+## 📁 Files Overview
+
+- `src/App.jsx` - Main application
+- `vercel.json` - Vercel configuration
+- `DEPLOYMENT.md` - Full deployment guide
+- `ADMIN_GUIDE.md` - How to download photos
+
+## 🆘 Need Help?
+
+### Camera not working?
+- Must use HTTPS (Vercel does this automatically)
+- Check browser permissions
+
+### Can't sign in?
+- Add your Vercel domain to Firebase (Step 4)
+
+### Photos not showing?
+- Check Firebase Firestore rules
+- Make sure collection is named "photos"
+
+## 🎯 Next Steps
+
+1. ✅ Deploy to Vercel
+2. ✅ Update Firebase authorized domains
+3. ✅ Test sign in and photo upload
+4. ✅ Share your URL with your community!
+5. 📥 Download photos weekly as backup
+
+## 📱 Your Vercel URL
+
+After deployment, you'll get: `https://YOUR-PROJECT.vercel.app`
+
+Share this URL with your environmental club! 🌱
+
+---
+Questions? Check DEPLOYMENT.md for detailed instructions.
