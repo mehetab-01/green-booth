@@ -177,6 +177,14 @@ function App() {
 
   const startCamera = async () => {
     setIsCameraLoading(true);
+    
+    // Check if getUserMedia is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setIsCameraLoading(false);
+      showMessage('Camera not supported on this device or browser. Please use a modern browser with HTTPS.', 'error');
+      return;
+    }
+
     try {
       // First, stop any existing stream
       if (streamRef.current) {
@@ -198,6 +206,11 @@ function App() {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         
+        // Set attributes for better compatibility
+        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.setAttribute('autoplay', '');
+        videoRef.current.muted = true;
+        
         // Wait for video to be ready
         videoRef.current.onloadedmetadata = () => {
           videoRef.current.play().then(() => {
@@ -207,9 +220,18 @@ function App() {
           }).catch(err => {
             console.error('Error playing video:', err);
             setIsCameraLoading(false);
-            showMessage('Error starting camera preview.', 'error');
+            showMessage('Error starting camera preview. Please try again.', 'error');
           });
         };
+        
+        // Fallback: if metadata doesn't load in 3 seconds, try to play anyway
+        setTimeout(() => {
+          if (!isCameraActive && videoRef.current) {
+            videoRef.current.play().catch(err => {
+              console.error('Delayed play error:', err);
+            });
+          }
+        }, 3000);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -217,13 +239,17 @@ function App() {
       let errorMessage = 'Unable to access camera. ';
       
       if (error.name === 'NotAllowedError') {
-        errorMessage += 'Please allow camera permissions in your browser.';
+        errorMessage += 'Please allow camera permissions in your browser settings.';
       } else if (error.name === 'NotFoundError') {
         errorMessage += 'No camera found on this device.';
       } else if (error.name === 'NotReadableError') {
         errorMessage += 'Camera is already in use by another application.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage += 'Camera not supported. Please use HTTPS.';
+      } else if (error.name === 'TypeError') {
+        errorMessage += 'Camera access requires HTTPS. Make sure you\'re using https://.';
       } else {
-        errorMessage += 'Please check your camera settings.';
+        errorMessage += 'Please check your camera settings and permissions.';
       }
       
       showMessage(errorMessage, 'error');
