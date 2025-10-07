@@ -9,7 +9,7 @@ Look for this section (around line 19):
 ```javascript
 // Admin emails who can download all photos - ADD YOUR EMAIL HERE
 const ADMIN_EMAILS = [
-  'your-email@gmail.com',  // Replace with your email
+  'shaaz.mehetab@gmail.com',  // Replace with your email
   // Add more admin emails below:
   // 'admin2@gmail.com',
   // 'admin3@gmail.com',

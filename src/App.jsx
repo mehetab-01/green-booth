@@ -75,6 +75,12 @@ const DownloadIcon = () => (
   </svg>
 );
 
+const FlipCameraIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
+
 function App() {
   const [user, setUser] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -88,6 +94,7 @@ function App() {
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [facingMode, setFacingMode] = useState('user'); // 'user' for front camera, 'environment' for back
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -193,13 +200,13 @@ function App() {
         streamRef.current = null;
       }
 
-      console.log('Requesting camera access...');
+      console.log('Requesting camera access with facingMode:', facingMode);
       
       const constraints = {
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
+          facingMode: facingMode, // 'user' for front, 'environment' for back
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
         },
         audio: false
       };
@@ -308,10 +315,23 @@ function App() {
     }
   };
 
+  // Flip camera between front and back
+  const flipCamera = async () => {
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newFacingMode);
+    
+    // If camera is active, restart it with new facing mode
+    if (isCameraActive) {
+      await startCamera();
+    }
+  };
+
   // Simplified camera start with minimal constraints (fallback)
   const startCameraSimple = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: facingMode } 
+      });
       if (videoRef.current) {
         streamRef.current = stream;
         videoRef.current.srcObject = stream;
@@ -337,9 +357,12 @@ function App() {
       
       const ctx = canvas.getContext('2d');
       
-      // Flip the image horizontally to match the mirror effect
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
+      // Only flip for front camera (user facing)
+      if (facingMode === 'user') {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       const photoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
@@ -688,8 +711,19 @@ function App() {
                 playsInline
                 muted
                 className={`w-full h-full object-cover ${isCameraActive ? '' : 'hidden'}`}
-                style={{ transform: 'scaleX(-1)' }}
+                style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
               />
+              
+              {/* Flip Camera Button - shown when camera is active */}
+              {isCameraActive && (
+                <button
+                  onClick={flipCamera}
+                  className="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition duration-200 shadow-lg"
+                  title="Flip Camera"
+                >
+                  <FlipCameraIcon />
+                </button>
+              )}
               
               {/* Photo preview */}
               {!isCameraActive && photoPreview && (
