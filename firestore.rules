@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Images collection - users can read all images if authenticated
+    // but can only create images with their own userId
+    match /images/{imageId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && 
+                              resource.data.userId == request.auth.uid;
+    }
+  }
+}
