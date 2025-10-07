@@ -18,7 +18,7 @@ const firebaseConfig = {
 
 // Admin emails who can download all photos - ADD YOUR EMAIL HERE
 const ADMIN_EMAILS = [
-  'shaaz.mehetab@gmail.coom',  // Replace with your email
+  'shaaz.mehetab@gmail.com',  // Replace with your email
   // Add more admin emails below:
   // 'admin2@gmail.com',
   // 'admin3@gmail.com',
