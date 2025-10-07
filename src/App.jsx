@@ -597,7 +597,7 @@ function App() {
         </div>
       </nav>
 
-      <div className="py-4 px-2 md:py-8 md:px-4">
+      <div className="py-8 px-4">
       <div className="max-w-2xl mx-auto">
         
         {/* Gallery View */}
@@ -722,7 +722,7 @@ function App() {
         ) : (
           <>
           {/* Main Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8">
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
           {/* Message Display */}
           {message.text && (
             <div className={`mb-6 p-4 rounded-lg ${
@@ -736,14 +736,14 @@ function App() {
 
           {/* Photo Preview / Camera Feed Area */}
           <div className="mb-6">
-            <div className="relative bg-gray-900 rounded-lg overflow-hidden flex items-center justify-center min-h-[400px] md:min-h-[500px] md:aspect-video">
+            <div className="relative bg-gray-900 rounded-lg overflow-hidden flex items-center justify-center min-h-[400px] md:aspect-video">
               {/* Video element - always rendered but hidden when not active */}
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className={`w-full h-full object-contain ${isCameraActive ? '' : 'hidden'}`}
+                className={`w-full h-full object-contain md:object-cover ${isCameraActive ? '' : 'hidden'}`}
                 style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
               />
               
