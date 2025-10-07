@@ -681,22 +681,27 @@ function App() {
           {/* Photo Preview / Camera Feed Area */}
           <div className="mb-6">
             <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
-              {isCameraActive ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                  style={{ transform: 'scaleX(-1)' }}
-                />
-              ) : photoPreview ? (
+              {/* Video element - always rendered but hidden when not active */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full h-full object-cover ${isCameraActive ? '' : 'hidden'}`}
+                style={{ transform: 'scaleX(-1)' }}
+              />
+              
+              {/* Photo preview */}
+              {!isCameraActive && photoPreview && (
                 <img
                   src={photoPreview}
                   alt="Preview"
                   className="w-full h-full object-contain"
                 />
-              ) : (
+              )}
+              
+              {/* Placeholder */}
+              {!isCameraActive && !photoPreview && (
                 <div className="text-center">
                   <ImagePlaceholderIcon />
                   <p className="mt-4 text-gray-500">No photo captured yet</p>
